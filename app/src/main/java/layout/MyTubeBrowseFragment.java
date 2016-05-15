@@ -1,20 +1,32 @@
 package layout;
 
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.example.triante.mytube.VideoPlayerActivity;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpRequestInitializer;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.jackson2.JacksonFactory;
+import com.google.api.client.repackaged.com.google.common.base.Strings;
 import com.google.api.services.youtube.YouTube;
 import com.google.api.services.youtube.model.ResourceId;
 import com.google.api.services.youtube.model.SearchListResponse;
@@ -23,10 +35,17 @@ import com.google.api.services.youtube.model.Thumbnail;
 
 
 import com.example.triante.mytube.R;
+import com.google.api.services.youtube.model.Video;
+import com.google.api.services.youtube.model.VideoListResponse;
+import com.google.api.services.youtube.model.VideoStatistics;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.Iterator;
 import java.util.List;
+import java.util.zip.Inflater;
 
 
 /**
@@ -38,7 +57,7 @@ public class MyTubeBrowseFragment extends Fragment {
     //private static long MAX_VIDEO_LIST = 20;
     private EditText searchBar;
     private TextView results;
-
+    private LinearLayout list;
     public MyTubeBrowseFragment() {
         // Required empty public constructor
     }
@@ -74,6 +93,7 @@ public class MyTubeBrowseFragment extends Fragment {
             }
         });
         results = (TextView) v.findViewById(R.id.results);
+        list = (LinearLayout) v.findViewById(R.id.videoList);
         return v;
     }
 
@@ -126,7 +146,7 @@ public class MyTubeBrowseFragment extends Fragment {
 
             // To increase efficiency, only retrieve the fields that the
             // application uses.
-            search.setFields("items(id/kind,id/videoId,snippet/title,snippet/thumbnails/default/url)");
+            search.setFields("items(id/kind,id/videoId,snippet/title,snippet/thumbnails/default/url,snippet/publishedAt)");
             search.setMaxResults(NUMBER_OF_VIDEOS_RETURNED);
 
             // Call the API and print results.
@@ -162,34 +182,14 @@ public class MyTubeBrowseFragment extends Fragment {
      *
      * @param query Search query (String)
      */
+
     private void prettyPrint(Iterator<SearchResult> iteratorSearchResults, String query) {
 
-        results.setText("\n==========================\n");
-        results.append(
-                "First " + NUMBER_OF_VIDEOS_RETURNED + " videos for search on \"" + query + "\".");
-        results.append("\n==========================\n");
-
-        if (!iteratorSearchResults.hasNext()) {
-            results.append(" There aren't any results for your query.");
-        }
-
-        while (iteratorSearchResults.hasNext()) {
-
-            SearchResult singleVideo = iteratorSearchResults.next();
-            ResourceId rId = singleVideo.getId();
-
-            // Confirm that the result represents a video. Otherwise, the
-            // item will not contain a video ID.
-            if (rId.getKind().equals("youtube#video")) {
-                Thumbnail thumbnail = singleVideo.getSnippet().getThumbnails().getDefault();
-
-                results.append(" Video Id" + rId.getVideoId());
-                results.append(" Title: " + singleVideo.getSnippet().getTitle());
-                results.append(" Thumbnail: " + thumbnail.getUrl());
-                results.append("\n-------------------------------------------------------------\n");
-            }
-        }
+        list.removeAllViews();
+        PopulateAsyncTask task = new PopulateAsyncTask(iteratorSearchResults, query);
+        task.execute();
     }
+
 
     private class BrowseAsyncTask extends AsyncTask<YouTube.Search.List, Void, List<SearchResult>> {
 
@@ -211,6 +211,124 @@ public class MyTubeBrowseFragment extends Fragment {
                 prettyPrint(searchResultList.iterator(), queryTerm);
             }
         }
+    }
+
+    private class PopulateAsyncTask extends AsyncTask<Void, Void, Void> {
+
+        private Iterator<SearchResult> resultList;
+        private String search;
+
+        PopulateAsyncTask(Iterator<SearchResult> iteratorSearchResults, String query) {
+            resultList = iteratorSearchResults;
+            search = query;
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void v) {
+            results.setText("\n==========================\n");
+            results.append(
+                    "First " + NUMBER_OF_VIDEOS_RETURNED + " videos for search on \"" + search + "\".");
+            results.append("\n==========================\n");
+
+            if (!resultList.hasNext()) {
+                results.append(" There aren't any results for your query.");
+            }
+
+            while (resultList.hasNext()) {
+
+                final SearchResult singleVideo = resultList.next();
+                final ResourceId rId = singleVideo.getId();
+                // Confirm that the result represents a video. Otherwise, the
+                // item will not contain a video ID.
+                if (rId.getKind().equals("youtube#video")) {
+
+                    Thumbnail thumbnail = singleVideo.getSnippet().getThumbnails().getDefault();
+
+//                    results.append("\nVideo Id" + rId.getVideoId());
+//                    results.append("\nTitle: " + singleVideo.getSnippet().getTitle());
+//                    results.append("\nPublished: " + singleVideo.getSnippet().getPublishedAt());
+//                    results.append("\nThumbnail: " + thumbnail.getUrl());
+//                    results.append("\n-------------------------------------------------------------");
+
+                    LinearLayout preview = new LinearLayout(getContext());
+                    preview.setOrientation(LinearLayout.HORIZONTAL);
+                    ImageView image = new ImageView(getContext());
+                    image.setLayoutParams(new ViewGroup.LayoutParams(425, 425));
+                    ImageLoadTask task = new ImageLoadTask(thumbnail.getUrl(), image);
+                    task.execute();
+                    preview.addView(image);
+
+                    LinearLayout textBox = new LinearLayout(getContext());
+                    textBox.setOrientation(LinearLayout.VERTICAL);
+                    TextView title = new TextView(getContext());
+                    title.setText(singleVideo.getSnippet().getTitle());
+                    title.setTextSize(25);
+                    TextView subText = new TextView(getContext());
+                    subText.setText("Published: " + singleVideo.getSnippet().getPublishedAt());
+                    subText.setTextSize(15);
+                    textBox.addView(title);
+                    textBox.addView(subText);
+                    preview.addView(textBox);
+
+                    image.setOnTouchListener(new View.OnTouchListener() {
+                        @Override
+                        public boolean onTouch(View v, MotionEvent event) {
+
+                            Intent toPlayer = new Intent(getContext(), VideoPlayerActivity.class);
+                            toPlayer.putExtra(VIDEO_ID, rId.getVideoId());
+                            toPlayer.putExtra(VIDEO_TITLE, singleVideo.getSnippet().getTitle() );
+                            startActivity(toPlayer);
+                            return false;
+                        }
+                    });
+
+                    list.addView(preview);
+                }
+            }
+        }
+    }
+
+    public static String VIDEO_ID = "VIDEO_ID";
+    public static String VIDEO_TITLE = "VIDEO_TITLE";
+
+    private class ImageLoadTask extends AsyncTask<Void, Void, Bitmap> {
+
+        private String url;
+        private ImageView imageView;
+
+        public ImageLoadTask(String url, ImageView imageView) {
+            this.url = url;
+            this.imageView = imageView;
+        }
+
+        @Override
+        protected Bitmap doInBackground(Void... params) {
+            try {
+                URL urlConnection = new URL(url);
+                HttpURLConnection connection = (HttpURLConnection) urlConnection
+                        .openConnection();
+                connection.setDoInput(true);
+                connection.connect();
+                InputStream input = connection.getInputStream();
+                Bitmap myBitmap = BitmapFactory.decodeStream(input);
+                return myBitmap;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Bitmap result) {
+            super.onPostExecute(result);
+            imageView.setImageBitmap(result);
+        }
+
     }
 
 }
