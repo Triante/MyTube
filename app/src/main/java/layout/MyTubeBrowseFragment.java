@@ -20,6 +20,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.triante.mytube.MainActivity;
 import com.example.triante.mytube.VideoPlayerActivity;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.http.HttpRequest;
@@ -133,7 +134,7 @@ public class MyTubeBrowseFragment extends Fragment {
             // Set your developer key from the Google Developers Console for
             // non-authenticated requests. See:
             // https://console.developers.google.com/
-            String apiKey = "AIzaSyB9POKflwqbgIwOxBgY0_-fQA8kAENH6BQ";
+            String apiKey = MainActivity.API_KEY;
             search.setKey(apiKey);
             search.setQ(queryTerm);
 

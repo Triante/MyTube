@@ -34,6 +34,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
     private TextView textView;
     private static final int RC_SIGN_IN = 9001;
     private Button bContinue;
+    public static String API_KEY = "AIzaSyDN_Pha8E7GzCXlPMqPfkgvw3o_uNBVLsg";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

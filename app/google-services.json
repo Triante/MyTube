@@ -13,21 +13,21 @@
       },
       "oauth_client": [
         {
-          "client_id": "497828944682-qbrmbh4pj6fqm14d4j77e8si5tbnd788.apps.googleusercontent.com",
+          "client_id": "497828944682-mr99headsbhgs9vbhia3ofpgi4tael31.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.example.triante.mytube",
-            "certificate_hash": "5F99EA838D7BC2DC7B4FD29F934972AE49DC2710"
+            "certificate_hash": "C38466DBFE06CE8B9D7C3C62EC5A2ACF074137B7"
           }
         },
         {
-          "client_id": "497828944682-epf7jab72gt25i16c76bppe34f58mr67.apps.googleusercontent.com",
+          "client_id": "497828944682-44vc26f7l9qlvsuttnj891k0hd039vuj.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyB9POKflwqbgIwOxBgY0_-fQA8kAENH6BQ"
+          "current_key": "AIzaSyDN_Pha8E7GzCXlPMqPfkgvw3o_uNBVLsg"
         }
       ],
       "services": {

@@ -59,7 +59,7 @@ public class VideoPlayerActivity extends YouTubeBaseActivity {
         titleTextView.setText(vTitle);
         String description = "Description:\n\n" + vDesc;
         descTextView.setText(description);
-        youTubePlayerView.initialize("AIzaSyB9POKflwqbgIwOxBgY0_-fQA8kAENH6BQ", listener);
+        youTubePlayerView.initialize(MainActivity.API_KEY, listener);
 
         bBack.setOnClickListener(new View.OnClickListener() {
             @Override
