@@ -1,8 +1,10 @@
 package com.example.triante.mytube;
 
+import android.content.DialogInterface;
 import android.support.design.widget.TabLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 
@@ -18,7 +20,9 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.google.android.gms.auth.api.Auth;
 import com.google.api.services.youtube.YouTube;
 
 import layout.MyTubeBrowseFragment;
@@ -26,22 +30,9 @@ import layout.MyTubePlaylistsFragment;
 
 public class MyTubeActivity extends AppCompatActivity {
 
-    /**
-     * The {@link android.support.v4.view.PagerAdapter} that will provide
-     * fragments for each of the sections. We use a
-     * {@link FragmentPagerAdapter} derivative, which will keep every
-     * loaded fragment in memory. If this becomes too memory intensive, it
-     * may be best to switch to a
-     * {@link android.support.v4.app.FragmentStatePagerAdapter}.
-     */
+
     private SectionsPagerAdapter mSectionsPagerAdapter;
 
-    public static YouTube youtube;
-
-
-    /**
-     * The {@link ViewPager} that will host the section contents.
-     */
     private ViewPager mViewPager;
 
     @Override
@@ -62,22 +53,32 @@ public class MyTubeActivity extends AppCompatActivity {
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(mViewPager);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
+        mViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+            }
+
+            @Override
+            public void onPageSelected(int position) {
+                STATE = position;
+                invalidateOptionsMenu();
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+
             }
         });
 
     }
 
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_my_tube, menu);
+
+        if (STATE == 0) getMenuInflater().inflate(R.menu.menu_my_tube_no_delete, menu);
+        else getMenuInflater().inflate(R.menu.menu_my_tube, menu);
         return true;
     }
 
@@ -89,16 +90,19 @@ public class MyTubeActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.menu_LogOff) {
+            logoutAlertBuilder();
+            return true;
+        }
+        else if (id == R.id.menu_delete) {
             return true;
         }
 
         return super.onOptionsItemSelected(item);
     }
 
-    /**
-     * A placeholder fragment containing a simple view.
-     */
+    private int STATE = 0;
+
     public static class PlaceholderFragment extends Fragment {
         /**
          * The fragment argument representing the section number for this
@@ -142,10 +146,6 @@ public class MyTubeActivity extends AppCompatActivity {
         }
     }
 
-    /**
-     * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
-     * one of the sections/tabs/pages.
-     */
     public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
         public SectionsPagerAdapter(FragmentManager fm) {
@@ -156,7 +156,9 @@ public class MyTubeActivity extends AppCompatActivity {
         public Fragment getItem(int position) {
             // getItem is called to instantiate the fragment for the given page.
             // Return a PlaceholderFragment (defined as a static inner class below).
-            if (position == 0) return MyTubeBrowseFragment.newInstance();
+            if (position == 0) {
+                return MyTubeBrowseFragment.newInstance();
+            }
             return MyTubePlaylistsFragment.newInstance();
         }
 
@@ -176,5 +178,34 @@ public class MyTubeActivity extends AppCompatActivity {
             }
             return null;
         }
+    }
+
+    /**
+     * Creates a AlertDialog to warn user about exiting MyTube
+     */
+    private void logoutAlertBuilder() {
+        AlertDialog.Builder exit = new AlertDialog.Builder(this);
+        exit.setTitle("Return to title screen of MyTube?");
+        exit.setCancelable(false);
+        exit.setNegativeButton("No", null);
+        exit.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                logoutAction();
+            }
+        });
+        exit.show();
+    }
+
+    /**
+     * The MyTube main activity exit action
+     */
+    private void logoutAction() {
+        super.onBackPressed();
+    }
+
+    @Override
+    public void onBackPressed() {
+        logoutAlertBuilder();
     }
 }

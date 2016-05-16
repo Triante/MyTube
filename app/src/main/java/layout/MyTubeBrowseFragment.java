@@ -26,7 +26,6 @@ import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpRequestInitializer;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.jackson2.JacksonFactory;
-import com.google.api.client.repackaged.com.google.common.base.Strings;
 import com.google.api.services.youtube.YouTube;
 import com.google.api.services.youtube.model.ResourceId;
 import com.google.api.services.youtube.model.SearchListResponse;
@@ -35,9 +34,7 @@ import com.google.api.services.youtube.model.Thumbnail;
 
 
 import com.example.triante.mytube.R;
-import com.google.api.services.youtube.model.Video;
-import com.google.api.services.youtube.model.VideoListResponse;
-import com.google.api.services.youtube.model.VideoStatistics;
+
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -45,10 +42,10 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Iterator;
 import java.util.List;
-import java.util.zip.Inflater;
 
 
 /**
+ * Referenced from:
  * https://developers.google.com/youtube/v3/code_samples/java#search_by_keyword
  */
 
@@ -146,7 +143,7 @@ public class MyTubeBrowseFragment extends Fragment {
 
             // To increase efficiency, only retrieve the fields that the
             // application uses.
-            search.setFields("items(id/kind,id/videoId,snippet/title,snippet/thumbnails/default/url,snippet/publishedAt)");
+            search.setFields("items(id/kind,id/videoId,snippet/title,snippet/thumbnails/default/url,snippet/publishedAt,snippet/description)");
             search.setMaxResults(NUMBER_OF_VIDEOS_RETURNED);
 
             // Call the API and print results.
@@ -182,7 +179,6 @@ public class MyTubeBrowseFragment extends Fragment {
      *
      * @param query Search query (String)
      */
-
     private void prettyPrint(Iterator<SearchResult> iteratorSearchResults, String query) {
 
         list.removeAllViews();
@@ -190,7 +186,9 @@ public class MyTubeBrowseFragment extends Fragment {
         task.execute();
     }
 
-
+    /**
+     * AsyncTask to download the search request in background
+     */
     private class BrowseAsyncTask extends AsyncTask<YouTube.Search.List, Void, List<SearchResult>> {
 
         @Override
@@ -213,6 +211,9 @@ public class MyTubeBrowseFragment extends Fragment {
         }
     }
 
+    /**
+     * AsyncTask to fill up the list view and assign onTouchListeners to thumbnails in background
+     */
     private class PopulateAsyncTask extends AsyncTask<Void, Void, Void> {
 
         private Iterator<SearchResult> resultList;
@@ -282,6 +283,7 @@ public class MyTubeBrowseFragment extends Fragment {
                             Intent toPlayer = new Intent(getContext(), VideoPlayerActivity.class);
                             toPlayer.putExtra(VIDEO_ID, rId.getVideoId());
                             toPlayer.putExtra(VIDEO_TITLE, singleVideo.getSnippet().getTitle() );
+                            toPlayer.putExtra(VIDEO_DESCRIPTION, singleVideo.getSnippet().getDescription());
                             startActivity(toPlayer);
                             return false;
                         }
@@ -295,7 +297,11 @@ public class MyTubeBrowseFragment extends Fragment {
 
     public static String VIDEO_ID = "VIDEO_ID";
     public static String VIDEO_TITLE = "VIDEO_TITLE";
+    public static String VIDEO_DESCRIPTION = "VIDEO_DESCRIPTION";
 
+    /**
+     * AsyncTask to download and set the images to thumbnails based off a URL in background
+     */
     private class ImageLoadTask extends AsyncTask<Void, Void, Bitmap> {
 
         private String url;

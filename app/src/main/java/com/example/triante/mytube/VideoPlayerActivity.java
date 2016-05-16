@@ -17,14 +17,15 @@ import layout.MyTubeBrowseFragment;
 
 
 /**
+ * Referenced from:
  * https://www.youtube.com/watch?v=a4NT5iBFuZs
  */
 public class VideoPlayerActivity extends YouTubeBaseActivity {
 
-    private TextView titleTextView;
+    private TextView titleTextView, descTextView;
     private YouTubePlayerView youTubePlayerView;
     private YouTubePlayer.OnInitializedListener listener;
-    private String vTitle, vID;
+    private String vTitle, vID, vDesc;
     Button bBack, bAdd;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,9 +36,11 @@ public class VideoPlayerActivity extends YouTubeBaseActivity {
         bBack = (Button) findViewById(R.id.player_back);
 
         titleTextView = (TextView) findViewById(R.id.player_title_text_view);
+        descTextView = (TextView) findViewById(R.id.player_description);
 
         vTitle = getIntent().getStringExtra(MyTubeBrowseFragment.VIDEO_TITLE);
         vID = getIntent().getStringExtra(MyTubeBrowseFragment.VIDEO_ID);
+        vDesc = getIntent().getStringExtra(MyTubeBrowseFragment.VIDEO_DESCRIPTION);
 
         youTubePlayerView = (YouTubePlayerView) findViewById(R.id.youtube_player);
         listener = new YouTubePlayer.OnInitializedListener() {
@@ -54,6 +57,8 @@ public class VideoPlayerActivity extends YouTubeBaseActivity {
 
 
         titleTextView.setText(vTitle);
+        String description = "Description:\n\n" + vDesc;
+        descTextView.setText(description);
         youTubePlayerView.initialize("AIzaSyB9POKflwqbgIwOxBgY0_-fQA8kAENH6BQ", listener);
 
         bBack.setOnClickListener(new View.OnClickListener() {
